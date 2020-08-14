@@ -11,8 +11,8 @@ pygame.display.set_caption('Space Invaders')
 icon = pygame.image.load('alien.png')
 pygame.display.set_icon(icon)
 
-mixer.music.load('sounds/meow.wav')
-mixer.music.play(-1)
+# mixer.music.load('sounds/meow.wav')
+# mixer.music.play(-1)
 
 # player
 player_image = pygame.image.load('space-invaders.png')
@@ -30,6 +30,12 @@ text_Y = 10
 def show_score(x, y):
     sc = font.render('Score : ' + str(score), True, (255, 255, 255))
     screen.blit(sc, (x, y))
+
+game_over_font = pygame.font.Font('freesansbold.ttf', 75)
+
+def game_over():
+    over_text = game_over_font.render('GAME OVER', True, (255, 255, 255))
+    screen.blit(over_text, (330,280 ))
 
 # enemy
 enemy_image = []
@@ -105,6 +111,14 @@ while running:
     player_position_X += player_position_change
 
     for i in range(number_of_enemies):
+
+        #game ending
+        if enemy_position_Y[i] >= 530:
+            for j in range(number_of_enemies):
+                enemy_position_Y[j] = 2000
+            game_over()
+            break
+
         enemy_position_X[i] += enemy_position_X_change[i]
         if enemy_position_X[i] <= 0:
             enemy_position_X_change[i] = 5
