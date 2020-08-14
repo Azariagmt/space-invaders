@@ -1,12 +1,13 @@
 import pygame
 import random
+import math
 
 pygame.init()
 
 screen = pygame.display.set_mode((1080, 650))
 
 pygame.display.set_caption('Space Invaders')
-icon = pygame.image.load('bad-guys.png')
+icon = pygame.image.load('alien.png')
 pygame.display.set_icon(icon)
 
 # player
@@ -14,13 +15,22 @@ player_image = pygame.image.load('space-invaders.png')
 player_position_X = 510
 player_position_Y = 530
 player_position_change = 0
+score = 0
 
 # enemy
-enemy_image = pygame.image.load('bad-guys.png')
-enemy_position_X = random.randint(0, 800)
-enemy_position_Y = random.randint(50, 150)
-enemy_position_X_change = 4
-enemy_position_Y_change = 40
+enemy_image = []
+enemy_position_X = []
+enemy_position_Y = []
+enemy_position_X_change = []
+enemy_position_Y_change = []
+number_of_enemies = 6
+
+for _ in range(number_of_enemies):
+    enemy_image.append(pygame.image.load('bad-guys.png'))
+    enemy_position_X.append(random.randint(0, 800))
+    enemy_position_Y.append(random.randint(50, 150))
+    enemy_position_X_change.append(4)
+    enemy_position_Y_change.append(40)
 
 # bullet
 bullet_image = pygame.image.load('bullet.png')
@@ -36,14 +46,22 @@ def player(x, y):
     screen.blit(player_image, (x, y))
 
 
-def enemy(x, y):
-    screen.blit(enemy_image, (x, y))
+def enemy(x, y, i):
+    screen.blit(enemy_image[i], (x, y))
 
 
 def fire_bullet(x, y):
     global bullet_state
     bullet_state = 'fire'
-    screen.blit(bullet_image, (x+16, y+10))
+    screen.blit(bullet_image, (x + 16, y + 10))
+
+
+def check_collision(enemy_position_X, enemy_position_Y,
+                    bullet_position_X, bullet_position_Y):
+    distance = math.sqrt(
+        math.pow(enemy_position_X - bullet_position_X, 2) + (math.pow(enemy_position_Y - bullet_position_Y, 2)))
+    if distance < 27:
+        return True
 
 
 running = True
@@ -57,9 +75,9 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                player_position_change = - 5
+                player_position_change = - 6
             if event.key == pygame.K_RIGHT:
-                player_position_change = + 5
+                player_position_change = + 6
             if event.key == pygame.K_SPACE:
                 if bullet_state is 'ready':
                     bullet_position_X = player_position_X
@@ -70,21 +88,32 @@ while running:
                 print('key release')
 
     player_position_X += player_position_change
-    enemy_position_X += enemy_position_X_change
 
-    if enemy_position_X <= 0:
-        enemy_position_X_change = 5
-        enemy_position_Y += enemy_position_Y_change
-    elif enemy_position_X >= 1016:
-        enemy_position_X_change = -5
-        enemy_position_Y += enemy_position_Y_change
+    for i in range(number_of_enemies):
+        enemy_position_X[i] += enemy_position_X_change[i]
+        if enemy_position_X[i] <= 0:
+            enemy_position_X_change[i] = 5
+            enemy_position_Y[i] += enemy_position_Y_change[i]
+        elif enemy_position_X[i] >= 1016:
+            enemy_position_X_change[i] = -5
+            enemy_position_Y[i] += enemy_position_Y_change[i]
+
+        if check_collision(enemy_position_X[i], enemy_position_Y[i], bullet_position_X, bullet_position_Y):
+            bullet_position_Y = 530
+            bullet_state = 'ready'
+            score += 1
+            print(score)
+            enemy_position_X[i] = random.randint(0, 800)
+            enemy_position_Y[i] = random.randint(50, 150)
+
+        enemy(enemy_position_X[i], enemy_position_Y[i], i)
 
     if player_position_X <= 0:
         player_position_X = 0
     elif player_position_X >= 1016:
         player_position_X = 1016
 
-    #bullet persisting movement
+    # bullet persisting movement
     if bullet_state == 'fire':
         fire_bullet(bullet_position_X, bullet_position_Y)
         bullet_position_Y -= bullet_position_Y_change
@@ -93,5 +122,4 @@ while running:
             bullet_state = 'ready'
 
     player(player_position_X, player_position_Y)
-    enemy(enemy_position_X, enemy_position_Y)
     pygame.display.update()
