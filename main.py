@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from pygame import mixer
 
 pygame.init()
 
@@ -10,12 +11,25 @@ pygame.display.set_caption('Space Invaders')
 icon = pygame.image.load('alien.png')
 pygame.display.set_icon(icon)
 
+mixer.music.load('sounds/meow.wav')
+mixer.music.play(-1)
+
 # player
 player_image = pygame.image.load('space-invaders.png')
 player_position_X = 510
 player_position_Y = 530
 player_position_change = 0
+
+# score
 score = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+text_X = 10
+text_Y = 10
+
+
+def show_score(x, y):
+    sc = font.render('Score : ' + str(score), True, (255, 255, 255))
+    screen.blit(sc, (x, y))
 
 # enemy
 enemy_image = []
@@ -80,6 +94,7 @@ while running:
                 player_position_change = + 6
             if event.key == pygame.K_SPACE:
                 if bullet_state is 'ready':
+                    mixer.Sound('sounds/bullet.wav').play()
                     bullet_position_X = player_position_X
                     fire_bullet(bullet_position_X, bullet_position_Y)
 
@@ -99,6 +114,7 @@ while running:
             enemy_position_Y[i] += enemy_position_Y_change[i]
 
         if check_collision(enemy_position_X[i], enemy_position_Y[i], bullet_position_X, bullet_position_Y):
+            mixer.Sound('sounds/ouch.wav').play()
             bullet_position_Y = 530
             bullet_state = 'ready'
             score += 1
@@ -122,4 +138,5 @@ while running:
             bullet_state = 'ready'
 
     player(player_position_X, player_position_Y)
+    show_score(text_X, text_Y)
     pygame.display.update()
